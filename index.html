@@ -1,0 +1,109 @@
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+        <style type="text/css">
+            table{
+            border: 2px solid;
+            border-collapse: collapse;
+            }
+            td{
+                border: 1px solid;
+                padding: 25px;
+            }
+        </style>
+        <script>
+            function makeTable()
+            {
+                var table = $('<table></table>').addClass('table');
+                for(i=0; i<10; i++){
+                    var row = $('<tr></tr>').addClass('rows');
+                    for (a=1; a<11; a++) {
+                        var cell = $('<td></td>').addClass(1);
+                        row.append(cell);
+                    }
+                    table.append(row);
+                }
+                
+                $('#here_table').append(table);
+            }
+            function randomIntFromInterval(min,max)
+            {
+                return Math.floor(Math.random()*(max-min+1)+min);
+            }
+            function makePGeneration(people)
+            {
+                var population = [];
+                for (i=0; i<people; i++) {
+                    population[i] = [];
+                    for (a=0; a<243; a++) {
+                        population[i][a] = randomIntFromInterval(0,6);
+                    }
+                    //$('#here_genomes').append(i + " : " + population[i] + "<br>")
+                }
+            }
+            function generateDecimalNumber(min, max)
+            {
+                highlightedNumber = Math.random() * (max - min) + min;
+                return highlightedNumber;
+                //alert(highlightedNumber);
+            }
+            function doesSpaceGetCan()
+            {
+                var chanceNum = generateDecimalNumber(0.0, 1.0);
+                if (chanceNum < .5) {
+                    return true;
+                }
+                else{
+                    return false;
+                }
+            }
+            function generateCanField() {
+                var canField = [];
+                for (i=0; i<100; i++) {
+                    if (doesSpaceGetCan() == true) {
+                        canField[i] = "c";
+                        console.log( i + ": True");
+                    }
+                    else{
+                        canField[i] = null;
+                        console.log(i + ": False");
+                    }
+                }
+                /*for (i=0; i<100; i++) {
+                $("#here_any_test").append(i + ": " + canField[i] + "<br>");
+                }*/
+            }
+        </script>
+    </head>
+    <body>
+        <div id="here_table"></div>
+        <hr/>
+        <div id="here_any_test"></div>
+        <script>
+            makeTable();
+            makePGeneration(200);
+            generateCanField();
+            
+             
+            
+        </script>
+    </body>
+</html>
+
+<!--
+
+0=North, 1=South, 2=East, 3=West, 4=Stay, 5=Pickup, 6=Random
+Remember -> align move list (genome array) to situation table (stil have to make)
+Fitness: 200 moves cap
+
+Score Breakdown:
+    50 pts: Collect all Cans
+    10 pts: Pick a can up
+    -10 pts: hit a wall
+    -20 pts: no cans picked up
+    -50 pts: Stay Put loop
+
+---Find out how to make Robby 'move' around the field (array) and pick up the cans.
+    
+
+-->
