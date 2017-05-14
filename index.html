@@ -1,19 +1,25 @@
 <html>
     <head>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+        <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>-->
+        <script src="jquery-3.2.0.min.js"></script>
+
         <style type="text/css">
             table{
-            border: 2px solid;
-            border-collapse: collapse;
+                border: 2px solid;
+                border-collapse: collapse;
             }
             td{
                 border: 1px solid;
                 padding: 25px;
             }
+            #testButtons{
+                position: absolute;
+                right: 200px;
+                top: 200px;
+            }
         </style>
         <script>
-            function makeTable()
-            {
+            function makeTable() { //make blank table. To be used for final/smartest robot
                 var table = $('<table></table>').addClass('table');
                 for(i=0; i<10; i++){
                     var row = $('<tr></tr>').addClass('rows');
@@ -26,29 +32,69 @@
                 
                 $('#here_table').append(table);
             }
-            function randomIntFromInterval(min,max)
-            {
+            function randomIntFromInterval(min,max) { //For probability
                 return Math.floor(Math.random()*(max-min+1)+min);
             }
-            function makePGeneration(people)
-            {
-                var population = [];
-                for (i=0; i<people; i++) {
-                    population[i] = [];
-                    for (a=0; a<243; a++) {
-                        population[i][a] = randomIntFromInterval(0,6);
+            function makePGeneration(){ //First set of robots, essentially the dumbest robots
+                var population = {
+                    size: 200,
+                    genomes: [],
+                    fitness: [],
+                    rankByFitness: [],
+                    createOffspring: function(){
+                        population.fitness.sort(function(a,b){ 
+                                return b-a;
+                        })
+                        for (b=100; b<200; b++){    //NATURAL SELECTION BABY (i know i don't need this but i feel like it is more dramatic if i have it.)
+                                population.fitness[b] = null;
+                                population.genomes[b] = null;
+                        }
+                        for (a=0; a<population.size-1; a+=2) {
+                            //take first two and find a random place to split array and mix w/ random mutation chance,
+                            //do it again for 2 offspring (100 pairs, each pair = 2 ppl, 200 new ppl)
+                            //repeat for all 200 ppl
+                            population.genomes[a] = [];
+                            population.genomes[a] = population.mergeGenomes(population.fitness[a], population.fitness[a+1]);
+                            population.genomes[a+1] = population.mergeGenomes(population.fitness[a], population.fitness[a+1]);
+                            
+                        }
+                    },
+                    mergeGenomes: function(genomeArray_Mother, genomeArray_Father){
+                        var whichArrayToUse; var offspringGenome = []; var mutationChance; 
+                        genomeArray_Mother = [];
+                        genomeArray_Father = [];
+                        
+                        whichArrayToUse = randomIntFromInterval(118,126);
+                        for (a=0; a<whichArrayToUse; a++) {
+                            genomeArray_Mother[a] = null;
+                        }
+                        for (a=243; a>whichArrayToUse; a--) {
+                            genomeArray_Father[a] = null;
+                        }
+                        offspringGenome = genomeArray_Mother + genomeArray_Father;
+                        for (a=0; a<243; a++){
+                            mutationChance = generateDecimalNumber(0, 1);
+                            if (mutationChance > 0.997){
+                                offspringGenome[a] = randomIntFromInterval(0,6); // Mutation has a 0.3% chance
+                            }
+                        }
+                        return offspringGenome;
                     }
-                    //$('#here_genomes').append(i + " : " + population[i] + "<br>")
+                };
+                for (i=0; i<population.size; i++) {
+                    population.genomes[i] = [];
+                    for (a=0; a<243; a++) {
+                        population.genomes[i][a] = randomIntFromInterval(0,6);
+                    }
+                    //$('#here_any_test').append(i + " : " + population.genomes[i] + "<br>")
                 }
+                return population;
             }
-            function generateDecimalNumber(min, max)
-            {
+            function generateDecimalNumber(min, max) { //More probability
                 highlightedNumber = Math.random() * (max - min) + min;
                 return highlightedNumber;
-                //alert(highlightedNumber);
             }
-            function doesSpaceGetCan()
-            {
+            function doesSpaceGetCan() { //50% chance that a space in the canField gets a can
                 var chanceNum = generateDecimalNumber(0.0, 1.0);
                 if (chanceNum < .5) {
                     return true;
@@ -57,34 +103,391 @@
                     return false;
                 }
             }
-            function generateCanField() {
-                var canField = [];
-                for (i=0; i<100; i++) {
-                    if (doesSpaceGetCan() == true) {
-                        canField[i] = "c";
-                        console.log( i + ": True");
+            function generateCanField() { //making of the 10x10 array known as the canField
+                var canField = {
+                    activePosition: [0,0],
+                    field: [
+                            [],
+                            [],
+                            [],
+                            [],
+                            [],
+                            [],
+                            [],
+                            [],
+                            [],
+                            []
+                            ],
+                    putCans: function(){
+                        for (a=0; a<10; a++) {
+                            for (b=0;b<10;b++) {
+                                if (a==0 && b==0) {
+                                    canField.field[a][b] = 2;
+                                }
+                                else{
+                                    canField.field[a][b] = 0;
+                                }
+                                if (doesSpaceGetCan() == true) {
+                                    canField.field[a][b] += 1;
+                                    //console.log( i + ": True // " + canField.field[a][b]);
+                                }
+                                else{
+                                    canField.field[a][b] += 0;
+                                    //console.log(i + ": False // " + canField.field[a][b]);
+                                }
+                                
+                                //$("#here_any_test").append(a + " , " + b + ": " + canField.field[a][b] + "<br>");
+                            }
+                        
+                        }
+                    },
+                    
+                    moveUp: function(){
+                        if (canField.activePosition[0] > 0) {
+                            canField.field[canField.activePosition[0]][canField.activePosition[1]] -= 2;
+                            canField.activePosition[0] -= 1;
+                            //alert (canField.activePosition);
+                            canField.field[canField.activePosition[0]][canField.activePosition[1]] += 2;
+                            return canField.activePosition;
+                        }
+                        else{
+                            //robby hit a wall lol
+                            robby.points -= 25;
+                            return false;
+                        }
+                    },
+                    moveDown: function(){
+                        if (canField.activePosition[0] < 9) {
+                            canField.field[canField.activePosition[0]][canField.activePosition[1]] -= 2;
+                            canField.activePosition[0] += 1;
+                            //alert(canField.activePosition);
+                            canField.field[canField.activePosition[0]][canField.activePosition[1]] += 2;
+                            return canField.activePosition;
+                        }
+                        else{
+                            //robby hit a wall lol
+                            robby.points -= 25;
+                            return false;
+                        }
+                    },
+                    moveLeft: function(){
+                        canField.field[canField.activePosition[0]][canField.activePosition[1]] -= 2;
+                        if (canField.activePosition[1] > 0) {
+                            canField.activePosition[1] -= 1;
+                            //alert(canField.activePosition);
+                            canField.field[canField.activePosition[0]][canField.activePosition[1]] += 2;
+                            return canField.activePosition;
+                        }
+                        else{
+                            //robby hit a wall lol
+                            robby.points -= 25;
+                            return false;
+                        }
+                        
+                    },
+                    moveRight: function(){
+                        if (canField.activePosition[1] < 9) {
+                            canField.field[canField.activePosition[0]][canField.activePosition[1]] -= 2;
+                            canField.activePosition[1] += 1;
+                            //alert(canField.activePosition);
+                            canField.field[canField.activePosition[0]][canField.activePosition[1]] += 2;
+                            return canField.activePosition;
+                        }
+                        else{
+                            //robby hit a wall lol
+                            robby.points -= 25;
+                            return false;
+                        }
+                        
+                    },
+                    stayPut: function(){
+                        return canField.activePosition;
+                    },
+                    pickUp: function(){
+                        if (canField.field[canField.activePosition[0]][canField.activePosition[1]] > 2) {
+                            //robby picked a can!!!!
+                            robby.points += 50;
+                            canField.field[canField.activePosition[0]][canField.activePosition[1]] -= 1;
+                        }
+                        else {
+                            //robby tried to pick up nothing lol
+                            robby.points -= 15;
+                            return false;
+                        }
+                    },
+                    randomMove: function(){
+                        var randMove = generateDecimalNumber(0,1);
+                        if (randMove < (1/6)) {
+                            canField.moveUp();
+                        }
+                        else if (randMove > (1/6) && randMove < (2/6)) {
+                            canField.moveDown();
+                        }
+                        else if (randMove > (2/6) && randMove < (3/6)) {
+                            canField.moveLeft();
+                        }
+                        else if (randMove > (3/6) && randMove < (4/6)) {
+                            canField.moveRight();
+                        }
+                        else if (randMove > (4/6) && randMove < (5/6)) {
+                            canField.stayPut();
+                        }
+                        else if (randMove > (5/6) && randMove < (6/6)) {
+                            canField.pickUp();
+                        }
+                    },
+                    testIfEmpty: function(){
+                        var boolean = true;
+                        for (a=0;a<10;a++) {
+                            for (b=0;b<10;b++) {
+                                if (canField.field[a][b] == 1 || canField.field[a][b] == 3) {
+                                    boolean = false;
+                                }
+                            }
+                        }
+                        return boolean;
                     }
-                    else{
-                        canField[i] = null;
-                        console.log(i + ": False");
+                    
+                };
+                canField.putCans();
+                var initialCan = [];
+                for (a=0;a<10;a++) {
+                    initialCan[a] = [];
+                    for (b=0; b<10;b++) {
+                        if (canField.field[a][b] > 1) {
+                            canField.field[a][b] -= 2;
+                        }
+                        initialCan[a][b] = canField.field[a][b];
                     }
                 }
-                /*for (i=0; i<100; i++) {
-                $("#here_any_test").append(i + ": " + canField[i] + "<br>");
-                }*/
+                return canField;
+            }
+            function generateMoveTable() { //Move table that all robots will refer to
+                var moveTable = {
+                    table: [],
+                    size: 0
+                };
+                for (a=0;a<243;a++) {
+                    //generate random table
+                    moveTable.table[a] = "";
+                    for (b=0;b<5;b++) {
+                        var ECW = generateDecimalNumber(0,1);
+                        if (ECW < (1/3)) {
+                            moveTable.table[a] += "E";
+                        }
+                        else if (ECW > (1/3) && ECW < (2/3)) {
+                            moveTable.table[a] += "C";
+                        }
+                        else {
+                            moveTable.table[a] += "W";
+                        }
+                        
+                    }
+                    moveTable.size += 1;
+                    //check for duplicates and get rid
+                    for (c=0;c<a; c++) {
+                        if (a==0) {
+                            
+                        }
+                        else {
+                            if (moveTable.table[c] === moveTable.table[a]) {
+                                a = a-1;
+                                moveTable.size -= 1;
+                                break;
+                            }
+                        }
+                    }
+                    
+                }
+                
+                /*for (i=0;i<243;i++) {
+                    $("#here_any_test").append(i + ": " + moveTable.table[i] +  "<br/>");
+                }
+                $("#here_any_test").append(moveTable.size);*/
+                return moveTable;
+            }
+            var robby = { //make robot, observe, assign point values, etc.
+                points: 0,
+                look: function(){
+                    var moveArray = ""; //Up,Down,Left,Right,Center
+                    //up
+                    if (canField.activePosition[0] > 0) {
+                        if (canField.field[(canField.activePosition[0]) - 1][canField.activePosition[1]] > 0) {
+                            //can
+                            moveArray += "C";
+                        }
+                        else {
+                            moveArray += "E";
+                        }
+                    }
+                    else{
+                        moveArray += "W";
+                    }
+                    
+                    //down
+                    if (canField.activePosition[0] < 9) {
+                        if (canField.field[(canField.activePosition[0]) + 1][canField.activePosition[1]] > 0) {
+                            //can
+                            moveArray += "C";
+                        }
+                        else {
+                            moveArray += "E";
+                        }
+                    }
+                    else{
+                        moveArray += "W";
+                    }
+                    //right
+                    if (canField.activePosition[1] < 9) {
+                        if (canField.field[(canField.activePosition[0])][canField.activePosition[1] + 1] > 0) {
+                            //can
+                            moveArray += "C";
+                        }
+                        else {
+                            moveArray += "E";
+                        }
+                    }
+                    else{
+                        moveArray += "W";
+                    }
+                    //left
+                    if (canField.activePosition[1] > 0) {
+                        if (canField.field[(canField.activePosition[0])][canField.activePosition[1] - 1] > 0) {
+                            //can
+                            moveArray += "C";
+                        }
+                        else {
+                            moveArray += "E";
+                        }
+                    }
+                    else{
+                       moveArray += "W"; 
+                    }
+                    //center
+                    if (canField.field[(canField.activePosition[0])][canField.activePosition[1]] > 2) {
+                        moveArray += "C";
+                    }
+                    else {
+                        moveArray += "E";
+                    }
+                    //alert (moveArray);
+                    return moveArray;
+                },
+                move: function(person){
+                    var moveNumber;
+                    var moveArray = robby.look();
+                        for (z=0; z<243; z++) {
+                            if (moveArray == (moveTable.table[z])) {
+                                moveNumber = population.genomes[person][z];
+                                break;
+                            }
+                        }
+                    if (moveNumber == 0) {
+                        canField.moveUp();
+                    }
+                    else if (moveNumber == 1) {
+                        canField.moveDown();
+                    }
+                    else if (moveNumber == 2) {
+                        canField.moveLeft();
+                    }
+                    else if (moveNumber == 3) {
+                        canField.moveRight();
+                    }
+                    else if (moveNumber == 4) {
+                        canField.stayPut();
+                        return "LOOP";
+                    }
+                    else if (moveNumber == 5) {
+                        
+                        canField.pickUp();
+                        
+                    }
+                    else if (moveNumber == 6) {
+                        canField.randomMove();
+                    }
+                }
+            }
+            function playGame() {
+                for (individual=0;individual<200;individual++) { //200 people
+                    for (game=0; game<100; game++) { //100 games a person
+                        for (c=0;c<200;c++) { //200 moves a game
+                            var testForLoop = robby.move(individual);
+                            if (testForLoop == "LOOP") {
+                                robby.points -= 500;
+                            }
+                            
+                        }
+                        if (canField.testIfEmpty() == true) {
+                            robby.points += 500;
+                        }
+                        else{
+                            robby.points -= 10;
+                        }
+                        generateCanField();
+                    }
+                    population.fitness[individual] = (robby.points / 100);
+                    robby.points = 0;
+                }
+                
             }
         </script>
     </head>
     <body>
+        <div id="testButtons">
+            <button id="MOVEUP"> UP </button><button id="MOVED"> DOWN </button><button id="MOVEL"> LEFT </button><button id="MOVER"> RIGHT </button><br/>
+            <button id="alertarray"> WHEREISMYPOSITION </button><button id="PICK"> Pick </button><button id="look">LOOK</button><button id="robbyMove">robby.Move()</button><br/>
+            <button id="playGame"> PLAY GAME </button><button id="testing">Test</button>
+        </div>
         <div id="here_table"></div>
         <hr/>
         <div id="here_any_test"></div>
         <script>
             makeTable();
-            makePGeneration(200);
-            generateCanField();
-            
-             
+            var population = makePGeneration();
+            var canField = generateCanField();           
+            var moveTable = generateMoveTable();
+        
+            $("#MOVEUP").click(function(){
+                canField.moveUp();
+            })
+            $("#MOVED").click(function(){
+                canField.moveDown();
+            })
+            $("#MOVEL").click(function(){
+                canField.moveLeft();
+            })
+            $("#MOVER").click(function(){
+                canField.moveRight();
+            })
+            $("#alertarray").click(function(){
+                for (a=0;a<10;a++) {
+                    for (b=0;b<10;b++){
+                        if (canField.field[a][b] > 1) {
+                            alert("Your can is at " + a + " , " + b);
+                        }
+                    }
+                }
+            })
+            $("#PICK").click(function(){
+                canField.pickUp();
+            })
+            $("#look").click(function(){
+                robby.look();
+            })
+            $("#robbyMove").click(function(){
+                robby.move(population.genomes[0]);
+            })
+            $("#playGame").click(function(){
+                for (x=0; x<200; x++){
+                    playGame();
+                    population.createOffspring();
+                }
+                console.log(population.fitness);
+            })
+            $("#testing").click(function(){
+                alert(makePGeneration().genomes[200][224])
+            })
             
         </script>
     </body>
@@ -92,18 +495,18 @@
 
 <!--
 
-0=North, 1=South, 2=East, 3=West, 4=Stay, 5=Pickup, 6=Random
-Remember -> align move list (genome array) to situation table (stil have to make)
-Fitness: 200 moves cap
+---so far:
+    played 200 games with each PGen robots, put fitness in array
 
-Score Breakdown:
-    50 pts: Collect all Cans
-    10 pts: Pick a can up
-    -10 pts: hit a wall
-    -20 pts: no cans picked up
-    -50 pts: Stay Put loop
-
----Find out how to make Robby 'move' around the field (array) and pick up the cans.
+---need to do:
+    breed parents & make offspring (get ready for lots of statistics !!)
+        remember to add mutation percentage 
+    1000x : get those offspring to play games
+            i.e. play game, createoffspring} 1000x
+    
+    when finished,
+        produce best robot after 1000 gens on the screen
+        get rid of all alerts, testing console messages, and test buttons
     
 
 -->
