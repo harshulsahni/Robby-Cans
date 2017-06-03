@@ -1,4 +1,4 @@
-<html>
+    <html>
     <head>
         <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>-->
         <script src="jquery-3.2.0.min.js"></script>
@@ -19,7 +19,7 @@
             }
         </style>
         <script>
-            function makeTable() { //make blank table. To be used for final/smartest robot
+            function makeTable() { //make blank table. To be used for final/smartest robot; for show purposes
                 var table = $('<table></table>').addClass('table');
                 for(i=0; i<10; i++){
                     var row = $('<tr></tr>').addClass('rows');
@@ -39,30 +39,36 @@
                 var population = {
                     size: 200,
                     genomes: [],
-                    fitness: [[], []],
-                    rankByFitness: [],
+                    genomeCopy: [],
+                    fitness: [],
                     createOffspring: function(){
-                        population.fitness.sort(function(a,b){ 
-                                return b[0]-a[0];
+                        population.genomeCopy = population.genomes;
+                        population.fitness.sort(function(a,b){ //Sort Population by their fitness
+                                return b[1]-a[1];
                         })
-                        /*for (b=100; b<200; b++){    //NATURAL SELECTION BABY (i know i don't need this but i feel like it is more dramatic if i have it.)
-                                population.fitness[b] = "";
-                                population.genomes[b] = "";
-                        }*/
                         for (a=0; a<population.size-1; a+=2) {
                             //take first two and find a random place to split array and mix w/ random mutation chance,
                             //do it again for 2 offspring (100 pairs, each pair = 2 ppl, 200 new ppl)
                             //repeat for all 200 ppl
-                            population.genomes[a] = [];
-                            population.genomes[a] = population.mergeGenomes(population.fitness[1][a], population.fitness[1][a+1]);
-                            population.genomes[a+1] = population.mergeGenomes(population.fitness[1][a], population.fitness[1][a+1]);
+                            //population.genomes[a] = [];
+                            for (b=0; b<2; b++)
+                            {
+                                var genomeArray_Father = [];
+                                var genomeArray_Mother = [];
+                                genomeArray_Father = population.genomeCopy[population.fitness[a][0]];
+                                genomeArray_Mother = population.genomeCopy[population.fitness[a+1][0]];
+                                population.genomes[a + b] = population.mergeGenomes(genomeArray_Father, genomeArray_Mother);
+                            }
+                            console.log("done");
+                            /*population.genomes[a] = population.mergeGenomes(population.genomeCopy[population.fitness[a][0]], population.genomeCopy[population.fitness[a+1][0]]);
+                            population.genomes[a+1] = population.mergeGenomes(population.genomeCopy[population.fitness[a][0]], population.genomeCopy[population.fitness[a+1][0]]);*/
                             
                         }
                     },
                     mergeGenomes: function(genomeArray_Mother, genomeArray_Father){
                         var whichArrayToUse; var offspringGenome = []; var mutationChance; 
-                        genomeArray_Mother = [];
-                        genomeArray_Father = [];
+                        /*genomeArray_Mother = [];
+                        genomeArray_Father = [];*/
                         
                         whichArrayToUse = randomIntFromInterval(118,126);
                         genomeArray_Mother.splice(whichArrayToUse, 243);
@@ -74,19 +80,19 @@
                                 offspringGenome[a] = randomIntFromInterval(0,6); // Mutation has a 0.3% chance
                             }
                         }
-                        //console.log(offspringGenome);
                         return offspringGenome;
                     }
                 };
-                for (i=0; i<population.size; i++) {
-                    population.genomes[i] = [];
-                    for (a=0; a<243; a++) {
-                        population.genomes[i][a] = randomIntFromInterval(0,6);
+                for (a=0; a<population.size; a++) {
+                    //Genomes Array
+                    population.genomes[a] = [];
+                    for (b=0; b<243; b++) {
+                        population.genomes[a][b] = randomIntFromInterval(0,6);
                     }
-                    //$('#here_any_test').append(i + " : " + population.genomes[i] + "<br>")
-                }
-                for (a=0; a<200; a++){
-                    population.fitness[0][a] = a;
+                    //Fitness Array
+                    population.fitness[a] = [];   // Format: [[person1, fitness], [person2, fitness], etc.]
+                    population.fitness[a][0] = a; //Used to identify which robot had the highest fitness after re-sorting
+                    population.fitness[a][1] = 0; //Every robot starts with a score of 0
                 }
                 return population;
             }
@@ -129,14 +135,10 @@
                                 }
                                 if (doesSpaceGetCan() == true) {
                                     canField.field[a][b] += 1;
-                                    //console.log( i + ": True // " + canField.field[a][b]);
                                 }
                                 else{
                                     canField.field[a][b] += 0;
-                                    //console.log(i + ": False // " + canField.field[a][b]);
                                 }
-                                
-                                //$("#here_any_test").append(a + " , " + b + ": " + canField.field[a][b] + "<br>");
                             }
                         
                         }
@@ -262,7 +264,7 @@
                 }
                 return canField;
             }
-            function generateMoveTable() { //Move table that all robots will refer to
+            function generateMoveTable() { //Move table that all robots will refer to  || !!!!!Very bad way to generate a table, will work on it!!!!
                 var moveTable = {
                     table: [],
                     size: 0
@@ -286,8 +288,7 @@
                     moveTable.size += 1;
                     //check for duplicates and get rid
                     for (c=0;c<a; c++) {
-                        if (a==0) {
-                            
+                        if (a==0) {  
                         }
                         else {
                             if (moveTable.table[c] === moveTable.table[a]) {
@@ -299,11 +300,6 @@
                     }
                     
                 }
-                
-                /*for (i=0;i<243;i++) {
-                    $("#here_any_test").append(i + ": " + moveTable.table[i] +  "<br/>");
-                }
-                $("#here_any_test").append(moveTable.size);*/
                 return moveTable;
             }
             var robby = { //make robot, observe, assign point values, etc.
@@ -370,7 +366,6 @@
                     else {
                         moveArray += "E";
                     }
-                    //alert (moveArray);
                     return moveArray;
                 },
                 move: function(person){
@@ -426,8 +421,8 @@
                         }
                         generateCanField();
                     }
-                    population.fitness[1][individual] = (robby.points / 100);
-                    robby.points = 0;
+                    population.fitness[individual][1] = (robby.points / 100); //average of all point over 100 games
+                    robby.points = 0; //reset
                 }
                 
             }
@@ -479,7 +474,7 @@
                 robby.move(population.genomes[0]);
             })
             $("#playGame").click(function(){
-                for (x=0; x<1; x++){
+                for (x=0; x<10; x++){
                     playGame();
                     population.createOffspring();
                 }
