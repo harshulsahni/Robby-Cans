@@ -10,12 +10,12 @@ function makeTable() { //make blank table. To be used for final/smartest robot; 
                     for (a=1; a<11; a++) {
                         var cell = $('<td></td>').addClass(1);
                         row.append(cell);
-                    };
+                    }
                     table.append(row);
-                };
+                }
                 
                 $('#here_table').append(table);
-};
+}
 
 function generateCanField() { //making of the 10x10 array known as the canField
     var canField = {
@@ -41,16 +41,16 @@ function generateCanField() { //making of the 10x10 array known as the canField
                     }
                     else{
                         canField.field[a][b] = 0;
-                    };
+                    }
                     if (canField.doesSpaceGetCan() == true) {
                         canField.field[a][b] += 1;
                     }
                     else{
                         canField.field[a][b] += 0;
-                    };
-                };
+                    }
+                }
             
-            };
+            }
         },
         doesSpaceGetCan: function(){ //50% chance that a space in the canField gets a can
             var chanceNum = generateDecimalNumber(0.0, 1.0);
@@ -59,7 +59,7 @@ function generateCanField() { //making of the 10x10 array known as the canField
             }
             else{
                 return false;
-            };
+            }
         },
         
         moveUp: function(robot_number){
@@ -162,9 +162,9 @@ function generateCanField() { //making of the 10x10 array known as the canField
                 for (b=0;b<10;b++) {
                     if (canField.field[a][b] == 1 || canField.field[a][b] == 3) {
                         boolean = false;
-                    };
-                };
-            };
+                    }
+                }
+            }
             return boolean;
         }
         
@@ -191,15 +191,15 @@ function generateMoveTable(){
         decodeMoveTable: function(number){ //change Numbers from the MoveTable into letters
             var character;
 
-            if (number == 0) {
-                character = "E"
+            if (number === 0) {
+                character = "E";
             }
             else if (number == 1) {
-                character = "C"
+                character = "C";
             }
             else{
-                character = "W"
-            };
+                character = "W";
+            }
             return character;
         }
     };
@@ -216,14 +216,14 @@ function generateMoveTable(){
             {
                 moveTable.table[moveTable.size] = moveTable.decodeMoveTable(a) + moveTable.decodeMoveTable(b) + moveTable.decodeMoveTable(c) + moveTable.decodeMoveTable(d) + moveTable.decodeMoveTable(e);
                 moveTable.size += 1;
-            };
-          };
-        };
-      };
-    };
+            }
+          }
+        }
+      }
+    }
     
    return moveTable;
-};
+}
 
 function makeRobots(size) { //200 robots that will be used; format: population.robots[0] = [0, [genome], 0]
     var population = {
@@ -233,8 +233,8 @@ function makeRobots(size) { //200 robots that will be used; format: population.r
             for (a=0; a<population.size; a++) {
                 for (b=0; b<243; b++){
                     population.robots[a].genome[b] = generateRandomInt(0,6);
-                };
-            };
+                }
+            }
         },
         createOffspring: function(){
             //sort by best fitness = first
@@ -246,8 +246,8 @@ function makeRobots(size) { //200 robots that will be used; format: population.r
                     var arrayToBeSpliced_Mother = population.robots[b].genome.slice();
                     var arrayToBeSpliced_Father = population.robots[b+1].genome.slice();
                     population.robots[b+a].genome.push(population.mergeGenomes(arrayToBeSpliced_Mother, arrayToBeSpliced_Father));
-                };
-            };
+                }
+            }
         },
         mergeGenomes: function(genomeArray_Mother, genomeArray_Father){
             var whichArrayToUse; var offspringGenome = []; var mutationChance; 
@@ -261,8 +261,8 @@ function makeRobots(size) { //200 robots that will be used; format: population.r
                 mutationChance = generateDecimalNumber(0, 1);
                 if (mutationChance > 0.997){ //0.3% chance of mutation
                     offspringGenome[mutationNumber] = generateRandomInt(0,6);
-                };
-            };
+                }
+            }
             return offspringGenome;
         }
     };
@@ -343,8 +343,8 @@ function makeRobots(size) { //200 robots that will be used; format: population.r
                             //moveNumber = population.genomes[a][genomeNumber];
                             moveNumber = population.robots[a].genome[genomeNumber];
                             break;
-                        };
-                    };
+                        }
+                    }
                 if (moveNumber == 0) {
                     canField.moveUp(a);
                 }
@@ -366,14 +366,14 @@ function makeRobots(size) { //200 robots that will be used; format: population.r
                 }
                 else if (moveNumber == 6) {
                     canField.randomMove(a);
-                };
+                }
             }
-        };
-    };
+        }
+    }
     
     population.makeGenomes();
     return population;
-};
+}
 
 function playGame(generation_number) {
     //for x amount of generations
@@ -398,7 +398,7 @@ function playGame(generation_number) {
                 {
                     if (population.robots[individual].move() == "LOOP") {
                         population.robots[individual].fitness -= 500;
-                    };
+                    }
                     if (canField.testIfEmpty == true) {
                         population.robots[individual].fitness += (100* (move - 200));
                         move = 199;
@@ -406,11 +406,11 @@ function playGame(generation_number) {
                     else{
                         population.robots[individual].fitness -= 10;
                     }
-                };
+                }
                 canField.putCans();
-            };
+            }
             population.robots[individual].fitness =  (population.robots[individual].fitness / 10);
-        };
+        }
         population.createOffspring();
-    };
-};
+    }
+}
