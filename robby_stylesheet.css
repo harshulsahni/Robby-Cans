@@ -1,0 +1,13 @@
+table{
+    border: 2px solid;
+    border-collapse: collapse;
+}
+td{
+    border: 1px solid;
+    padding: 25px;
+}
+#testButtons{
+    position: absolute;
+    right: 200px;
+    top: 200px;
+}
